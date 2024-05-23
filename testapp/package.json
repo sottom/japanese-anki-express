@@ -12,8 +12,10 @@
     "express": "~4.16.1",
     "fuse.js": "^6.4.6",
     "http-errors": "~1.6.3",
+    "http-proxy-agent": "^7.0.2",
     "jade": "~1.11.0",
     "kuromoji": "^0.1.2",
+    "lingva-scraper": "^1.1.0",
     "morgan": "~1.9.1",
     "nihongo": "^1.0.1",
     "wanakana": "^4.0.2"
