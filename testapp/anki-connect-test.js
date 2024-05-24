@@ -28,10 +28,10 @@ function sleep(ms) {
     // let agent = new HttpProxyAgent('http://103.135.139.121:80');
     for(let sentence of tatoebaSentences) {
         count++
-        if(sentence.split('\t')[2].includes('みんなはどう思う？')) {
-            console.log()
-        }
-        if(count > 187230) {
+        // if(sentence.split('\t')[2].includes('みんなはどう思う？')) {
+        //     console.log()
+        // }
+        if(count > 240480) {
             let [a,b,s] = sentence.split('\t')
             let translation = await getTranslationText("auto", "en", s);
             // let data = await translate(s, { 
@@ -45,9 +45,9 @@ function sleep(ms) {
                 jpn: s,
                 eng: translation
             })
-            if(count % 10 == 0) {
+            // if(count % 10 == 0) {
                 fs.writeFileSync('tatoebaSentencesTranslated.json', JSON.stringify(translatedSentences))
-            }
+            // }
         }
     }
     // console.log()
