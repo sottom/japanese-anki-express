@@ -1,11 +1,12 @@
 const fs = require('fs');
+const path = require('path')
 function sleep(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
 }
 
-function getTokenizer(dicPath = './node_modules/kuromoji/dict/') {
+function getTokenizer(dicPath = __dirname + '/node_modules/kuromoji/dict/') {
     return new Promise((res, rej) => {
         const analyzer = kuromoji.builder({ dicPath })
         analyzer.build((err, tokenizer) => {
@@ -17,21 +18,74 @@ function getTokenizer(dicPath = './node_modules/kuromoji/dict/') {
 
 const kuromoji = require("kuromoji");
 const nihongo = require('nihongo');
-const wanakana = require('wanakana')
+const wanakana = require('wanakana');
 (async () => {
+    const kanjiCommonWords = JSON.parse(fs.readFileSync(path.join(__dirname, 'kanjiCommonWords.json'), 'utf-8'))
+    const accepted_pos = ["名詞", "動詞", "副詞", "接頭詞", "形容詞", "連体詞", "接続詞", "感動詞"];
+    const basic_form_blacklist = [
+        "れる", 'の'
+    ]
+    const jmdict = JSON.parse(fs.readFileSync(path.join(__dirname, 'routes', 'data', 'new_dict.json'), 'utf-8'))
     const tokenizer = await getTokenizer();
     const story_words = [];
     const counts = [];
     let counter = 0;
-    let chunks = fs.readFileSync('', {encoding: 'utf-8'}).filter(text => nihongo.hasKanji(text))
-    for (let chunk of chunks) {
-        if (!chunk) continue;
+    let translatedSentences = JSON.parse(fs.readFileSync('tatoebaSentencesTranslatedWithId.json', { encoding: 'utf-8' }))
+        .filter(text => nihongo.hasKanji(text.jpn))
+
+
+    ///////////////////////////////
+    // INDEX TRANSLATED SENTENCE WORDS
+    ///////////////////////////////
+    let indexedWords = {}
+    for (let sentenceObj of translatedSentences) {
+        counter += 1
+        if (counter % 10000 === 0) {
+            console.log(counter)
+        }
+        const tokenized_sentence = tokenizer.tokenize(sentenceObj.jpn);
+
+        for (let pos of tokenized_sentence) {
+            if (nihongo.hasKanji(pos.surface_form)) {
+                if (indexedWords[pos.surface_form]) {
+                    indexedWords[pos.surface_form].push(sentenceObj)
+                } else {
+                    indexedWords[pos.surface_form] = [sentenceObj]
+                }
+            }
+        }
+    }
+    ///////////////////////////////
+
+    ///////////////////////////////
+    // ADD SENTENCES TO COMMON WORDS OF KANJI
+    ///////////////////////////////
+    // let num = 0;
+    for (let kanji of Object.keys(kanjiCommonWords)) {
+        for (let wordObj of kanjiCommonWords[kanji]) {
+            wordObj.sentences = []
+            if (indexedWords[wordObj.word]) {
+                // num++
+                // if(num < 5) {
+                    wordObj.sentences = indexedWords[wordObj.word].slice(0,10)
+                // } else {
+                //     num = 0;
+                // }
+            }
+        }
+    }
+    fs.writeFileSync('kanjiCommonWordsWithSentences.json', JSON.stringify(kanjiCommonWords))
+    ///////////////////////////////
+
+    for (let sentenceObj of translatedSentences) {
+        if (!sentenceObj.jpn) continue;
         counter += 1
         console.log(counter)
-        const tokenized_sentence = tokenizer.tokenize(chunk);
+        const tokenized_sentence = tokenizer.tokenize(sentenceObj.jpn);
 
         for (let pos of tokenized_sentence) {
             if (!basic_form_blacklist.includes(pos.basic_form) && (nihongo.hasKanji(pos.surface_form) || accepted_pos.includes(pos.pos))) {
+                let dictionaryWord = jmdict.find(x => x.word == pos.basic_form)
                 let found_obj;
                 if (pos.basic_form === '*') {
                     found_obj = story_words.find(w => w.word === pos.surface_form);
@@ -59,7 +113,7 @@ const wanakana = require('wanakana')
                     } else {
                         definitions = '';
                     }
-                    const sentencesWithWord = chunk.split('。').filter(s => s.includes(pos.surface_form)).map(s => s.trim());
+                    const sentencesWithWord = sentenceObj.split('。').filter(s => s.includes(pos.surface_form)).map(s => s.trim());
                     const sentences = sentencesWithWord.map((sentence, i) => {
                         const len = pos.surface_form.length
                         const index = sentence.indexOf(pos.surface_form);
@@ -94,7 +148,7 @@ const wanakana = require('wanakana')
                 : 0;
     });
 
-})
+})()
 
 
 
@@ -138,9 +192,12 @@ const wanakana = require('wanakana')
 
 
 
+// ///////////////////////////////////////////////
 // // GET COMMON WORDS FOR KANJI FROM THE RIGHT DECK
+// ///////////////////////////////////////////////
 // const axios = require("axios");
-//     let data = JSON.parse(fs.readFileSync(__dirname + '/kanjiCommonWords.json', { encoding: 'utf-8' }))
+// (async () => {
+//     let data = JSON.parse(fs.readFileSync(__dirname + '/kanjiCommonWordsWithSentences.json', { encoding: 'utf-8' }))
 
 //     // // GET DECK NAMES
 //     let action = 'deckNames';
@@ -182,4 +239,5 @@ const wanakana = require('wanakana')
 //         }
 //     }
 // })()
+// ///////////////////////////////////////////////
 
