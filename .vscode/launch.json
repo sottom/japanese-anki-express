@@ -7,11 +7,52 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "express index",
+            "runtimeExecutable": "/Users/mitchellsotto/.nvm/versions/node/v18.9.0/bin/node",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/index.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Create Frequency List",
+            "runtimeExecutable": "/Users/mitchellsotto/.nvm/versions/node/v18.9.0/bin/node",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/testapp/createFrequencyList.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Get Learned Kanji Combinations",
+            "runtimeExecutable": "/Users/mitchellsotto/.nvm/versions/node/v18.9.0/bin/node",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/testapp/learned-kanji-combinations.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Test Anki",
+            "runtimeExecutable": "/Users/mitchellsotto/.nvm/versions/node/v18.9.0/bin/node",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/testapp/anki-connect-test.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Practice Case",
+            "runtimeExecutable": "/Users/mitchellsotto/.nvm/versions/node/v18.9.0/bin/node",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/testapp/practicegolfcase.js"
         }
     ]
 }

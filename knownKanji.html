@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop Sections</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .section h2 {
+            margin: 0;
+            cursor: text;
+        }
+
+        .block {
+            border: 1px solid #000;
+            margin: 5px;
+            cursor: grab;
+            width: 80px;
+            height: 80px;
+            display: inline-block;
+            text-align: center;
+            line-height: 80px;
+            font-size: 50px;
+            /* Adjust this value to vertically center the text */
+        }
+
+        .block.dragging {
+            opacity: 0.5;
+        }
+
+        .block.ghost {
+            opacity: 0.3;
+            border: 2px dashed #000;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .block.selected {
+            border: 2px solid blue;
+            box-shadow: 0 0 10px blue;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="add-section-above">Add Section Above</button>
+    <div id="container">
+        <div class="section">
+            <h2 contenteditable="true">Section 1</h2>
+        </div>
+    </div>
+    <button id="add-section-below">Add Section Below</button>
+    <script src="script.js"></script>
+    <script>
+        let originalSection = document.querySelector('.section')
+        const knownKanji = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "口", "日", "月", "田", "目", "古", "吾", "冒", "朋", "明", "唱", "晶", "品", "呂", "昌", "早", "旭", "世", "胃", "旦", "胆", "亘", "凹", "凸", "旧", "自", "白", "百", "中", "千", "舌", "升", "昇", "丸", "寸", "専", "博", "占", "上", "下", "卓", "朝", "只", "貝", "貞", "員", "見", "児", "元", "頁", "頑", "凡", "負", "万", "句", "肌", "旬", "勺", "的", "首", "乙", "乱", "直", "具", "真", "工", "左", "右", "有", "賄", "貢", "項", "刀", "刃", "切", "召", "昭", "則", "副", "別", "丁", "町", "可", "頂", "子", "孔", "了", "女", "好", "如", "母", "貫", "兄", "克", "小", "少", "大", "多", "夕", "汐", "外", "名", "石", "肖", "硝", "砕", "砂", "削", "光", "太", "器", "臭", "妙", "省", "厚", "奇", "川", "州", "順", "水", "氷", "永", "泉", "原", "願", "泳", "沼", "沖", "江", "汁", "潮", "源", "活", "消", "況", "河", "泊", "湖", "測", "土", "吐", "圧", "埼", "垣", "圭", "封", "涯", "寺", "時", "均", "火", "炎", "煩", "淡", "灯", "畑", "災", "灰", "点", "照", "魚", "漁", "里", "黒", "墨", "鯉", "量", "厘", "埋", "同", "洞", "胴", "向", "尚", "字", "守", "完", "宣", "宵", "安", "宴", "寄", "富", "貯", "木", "林", "森", "桂", "柏", "枠", "梢", "棚", "杏", "桐", "植", "枯", "朴", "村", "相", "机", "本", "札", "暦", "案", "燥", "未", "末", "沫", "味", "妹", "朱", "株", "若", "草", "苦", "寛", "薄", "葉", "模", "漠", "墓", "暮", "膜", "苗", "兆", "桃", "眺", "犬", "状", "黙", "然", "荻", "狩", "猫", "牛", "特", "告", "先", "洗", "介", "界", "茶", "合", "塔", "王", "玉", "宝", "珠", "現", "狂", "皇", "呈", "全", "栓", "理", "主", "注", "柱", "金", "銑", "鉢", "銅", "釣", "針", "銘", "鎮", "道", "導", "辻", "迅", "造", "迫", "逃", "辺", "巡", "車", "連", "軌", "輸", "前", "各", "格", "略", "客", "額", "夏", "処", "条", "落", "冗", "軍", "輝", "運", "冠", "夢", "坑", "高", "享", "塾", "熟", "亭", "京", "涼", "景", "鯨", "舎", "周", "週", "士", "吉", "壮", "荘", "売", "学", "覚", "栄", "書", "津", "牧", "攻", "敗", "枚", "故", "敬", "言", "警", "計", "獄", "訂", "討", "訓", "詔", "詰", "話", "詠", "詩", "語", "読", "調", "談", "諾", "諭", "式", "試", "弐", "域", "賊", "栽", "載", "茂", "成", "城", "誠", "威", "滅", "減", "桟", "銭", "浅", "止", "歩", "渉", "頻", "肯", "企", "歴", "武", "賦", "正", "証", "政", "定", "錠", "走", "超", "赴", "越", "是", "題", "堤", "建", "延", "誕", "礎", "婿", "衣", "裁", "装", "裏", "壊", "哀", "遠", "猿", "初", "布", "帆", "幅", "帽", "幕", "幌", "錦", "市", "姉", "肺", "帯", "滞", "刺", "制", "製", "転", "芸", "雨", "雲", "曇", "雷", "霜", "冬", "天", "橋", "嬌", "立", "泣", "章", "競", "帝", "童", "瞳", "鐘", "商", "嫡", "適", "滴", "敵", "匕", "北", "背", "比", "昆", "皆", "混", "渇", "謁", "褐", "喝", "旨", "脂", "壱", "毎", "敏", "梅", "海", "乞", "乾", "腹", "複", "欠", "吹", "炊", "歌", "軟", "次", "茨", "資", "姿", "諮", "賠", "培", "剖", "音", "暗", "韻", "識", "鏡", "境", "亡", "盲", "妄", "荒", "望", "方", "妨", "坊", "芳", "肪", "訪", "放", "激", "脱", "説", "鋭", "曽", "増", "贈", "東", "棟", "凍", "妊", "廷", "染", "燃", "賓", "歳", "県", "栃", "地", "池", "虫", "蛍", "蛇", "虹", "蝶", "独", "蚕", "風", "己", "起", "妃", "改", "記", "包", "胞", "砲", "泡", "亀", "電", "竜", "滝", "豚", "逐", "遂", "家", "嫁", "豪", "腸", "場", "湯", "羊", "美", "洋", "詳", "鮮", "達", "羨", "差", "着", "唯", "焦", "礁", "集", "准", "進", "雑", "雌", "準", "奮", "奪", "確", "午", "許", "歓", "権", "観", "羽", "習", "翌", "曜", "濯", "曰", "困", "固", "国", "団", "因", "姻", "園", "回", "壇", "脊", "妖", "沃", "巾", "匂", "嘲", "咽", "呪", "唄", "叱", "堆", "填", "妬", "沙", "汰", "汎", "苛", "蔑", "葛", "昧", "旺", "肘", "腺", "椅", "柿", "椎", "煎", "玩", "誰", "詣", "諦", "詮", "貼", "賂", "鍵", "頃", "冥", "戚", "嗅", "喩", "訃", "楷", "諧", "錮",]
+        let kanjiElement = knownKanji.forEach(kanji => {
+            let div = document.createElement('div')
+            div.classList.add('block')
+            div.setAttribute('draggable', true)
+            div.textContent = kanji
+            originalSection.appendChild(div)
+        })
+
+        document.getElementById('add-section-above').addEventListener('click', (e) => {
+            const container = document.getElementById('container');
+            const newSection = createSection();
+            container.insertBefore(newSection, container.firstChild);
+        });
+
+        document.getElementById('add-section-below').addEventListener('click', () => {
+            const container = document.getElementById('container');
+            const newSection = createSection();
+            container.appendChild(newSection);
+        });
+
+        function createSection() {
+            const newSection = document.createElement('div');
+            newSection.classList.add('section');
+            newSection.innerHTML = `<h2 contenteditable="true">New Section</h2>`;
+            return newSection;
+        }
+
+        let draggedElement = null;
+        let ghostElement = null;
+        let selectedBlocks = [];
+
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('block')) {
+                event.target.classList.toggle('selected');
+                if (event.target.classList.contains('selected')) {
+                    selectedBlocks.push(event.target);
+                } else {
+                    selectedBlocks = selectedBlocks.filter(block => block !== event.target);
+                }
+            }
+        });
+
+        document.addEventListener('dragstart', (event) => {
+            if (event.target.classList.contains('block')) {
+                draggedElement = event.target;
+                event.target.classList.add('dragging');
+
+                // Create a ghost element
+                ghostElement = event.target.cloneNode(true);
+                ghostElement.classList.add('ghost');
+                event.target.parentElement.appendChild(ghostElement);
+            }
+        });
+
+        document.addEventListener('dragend', (event) => {
+            if (event.target.classList.contains('block')) {
+                event.target.classList.remove('dragging');
+                draggedElement = null;
+
+                // Remove the ghost element
+                if (ghostElement) {
+                    ghostElement.remove();
+                    ghostElement = null;
+                }
+
+                // Clear selection
+                selectedBlocks.forEach(block => block.classList.remove('selected'));
+                selectedBlocks = [];
+            }
+        });
+
+        document.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            const target = event.target;
+            if (target.classList.contains('block') && target !== draggedElement) {
+                const container = target.parentElement;
+                const blocks = Array.from(container.querySelectorAll('.block'));
+                const draggedIndex = blocks.indexOf(draggedElement);
+                const targetIndex = blocks.indexOf(target);
+
+                if (draggedIndex < targetIndex) {
+                    container.insertBefore(draggedElement, target.nextSibling);
+                } else {
+                    container.insertBefore(draggedElement, target);
+                }
+
+                // Move selected blocks in order
+                selectedBlocks.forEach(block => {
+                    if (block !== draggedElement) {
+                        container.insertBefore(block, draggedElement.nextSibling);
+                    }
+                });
+            } else if (target.classList.contains('section') && target !== draggedElement.parentElement) {
+                const container = target;
+                if (!container.querySelector('.block')) {
+                    container.appendChild(draggedElement);
+                } else {
+                    container.appendChild(draggedElement);
+                }
+
+                // Move selected blocks in order
+                selectedBlocks.forEach(block => {
+                    if (block !== draggedElement) {
+                        container.appendChild(block);
+                    }
+                });
+            }
+
+            // Auto-scroll functionality
+            const scrollMargin = 50; // Margin from the top/bottom of the screen to start scrolling
+            const scrollSpeed = 10; // Speed of scrolling
+
+            if (event.clientY < scrollMargin) {
+                window.scrollBy(0, -scrollSpeed);
+            } else if (event.clientY > window.innerHeight - scrollMargin) {
+                window.scrollBy(0, scrollSpeed);
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>
